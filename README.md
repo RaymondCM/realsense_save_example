@@ -1,6 +1,6 @@
 # Realsense Example 
 
-This file will save and visualise data from an Intel Realsense camera.
+This file will save and visualise data from an Intel Realsense camera. Tested with python>=3.7.
 
 ```bash
 # Install librealsense
@@ -20,8 +20,8 @@ git clone https://github.com/RaymondKirk/realsense_save_example
 cd realsense_save_example
 
 # Install python wrapper
-pip3 install pyrealsense2 opencv-python numpy
+pip install pyrealsense2 opencv-python numpy
 
 # Run the code
-python3 main.py
+python main.py --visualise
 ```
