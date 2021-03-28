@@ -1,0 +1,15 @@
+# Config file to support setting camera settings
+ir_enabled: true
+rgb_width: 1920
+rgb_height: 1080
+rgb_fps: 30
+filters:
+  spatial:
+    filter_magnitude: 2
+    filter_smooth_alpha: 0.5
+    filter_smooth_delta: 20
+  temporal:
+    filter_smooth_alpha: 0.4
+    filter_smooth_delta: 20
+    persistency_mode: 1
+advanced_config: "advanced.json" # Path to config exported from realsense-viewer (relative to this folder or absolute)
