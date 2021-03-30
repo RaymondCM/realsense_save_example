@@ -1,4 +1,5 @@
 import time
+import uuid
 from copy import deepcopy
 from io import StringIO
 
@@ -22,10 +23,15 @@ from tqdm import tqdm
 from rs_store.camera import RealsenseD400Camera
 from rs_store.save import save_dict, save_img, save
 
-folder_name = str(datetime.now())
-for o in ['.', ':', " "]:
-    folder_name = folder_name.replace(o, "_")
-save_path = pathlib.Path(__file__).parent / "saved_data" / folder_name
+
+def get_str_datetime():
+    folder_name = str(datetime.now())
+    for o in ['.', ':', " "]:
+        folder_name = folder_name.replace(o, "_")
+    return "D" + str(datetime.now()).replace(".", "_").replace(":", "_").replace(" ", "T")
+
+
+save_path = pathlib.Path(__file__).parent / "saved_data" / get_str_datetime()
 log_file = save_path / "log.txt"
 save_log = False
 
@@ -72,8 +78,9 @@ def main():
 
             if args.save and time_since_last_capture > args.interval:
                 last_capture = timer()
-                time_str = str(datetime.time(datetime.now())).replace(".", "_").replace(":", "_")
-
+                time_str = get_str_datetime()
+                if not save_path.exists():
+                    save_path.mkdir(parents=True)
                 for k in ["colour", "depth", "aligned_depth", "aligned_depth_cm", "ir_left", "ir_right", "meta"]:
                     data = getattr(frames, k)
                     if data is None:
@@ -90,4 +97,13 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    while True:
+        try:
+            main()
+        except KeyboardInterrupt:
+            print("Exiting")
+            break
+        except Exception as e:
+            print("Exception", e)
+            print("Restarting in 5 seconds")
+            time.sleep(5)
