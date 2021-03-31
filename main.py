@@ -48,7 +48,7 @@ def main():
             save_path.mkdir(parents=True)
         idx = 0
         log("Saving images to {}".format(save_path.resolve()))
-        load_balancer = LoadBalancer(maxsize=80, threads=args.threads, auto=False)
+        load_balancer = LoadBalancer(maxsize=80, threads=int(args.threads) or 1, auto=False)
     args.interval = float(args.interval)
 
     camera = RealsenseD400Camera(config_path=args.config, visualise=args.visualise)
