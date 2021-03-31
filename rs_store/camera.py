@@ -47,14 +47,18 @@ class RealsenseData:
 class RealsenseD400Camera():
     def __init__(self, config_path=None, visualise=False):
         self.device = None
+        self.started = False
         self.advanced_mode = None
         self.pipeline = rs.pipeline()
         self.rs_config = rs.config()
         if config_path is None:
             config_path = pathlib.Path(__file__).parent.parent / "configs/default.yaml"
+
         self.config = Config(config_path)
         self._configure_rs()
-        self.profile = self.pipeline.start(self.rs_config)
+        self.profile = None
+        self.start()
+
         self.colorizer = rs.colorizer()
         self.frames = RealsenseData()
 
@@ -69,6 +73,17 @@ class RealsenseD400Camera():
         self.display = None
         if self.visualise:
             self.display = OpenCVDisplay("Realsense Saver")
+
+    def stop(self):
+        if self.started:
+            self.pipeline.stop()
+            self.started = False
+        else:
+            print("Pipeline not started!")
+
+    def start(self):
+        self.profile = self.pipeline.start(self.rs_config)
+        self.started = True
 
     def _configure_rs(self):
         ds5_product_ids = ["0AD1", "0AD2", "0AD3", "0AD4", "0AD5", "0AF6", "0AFE", "0AFF", "0B00", "0B01", "0B03",

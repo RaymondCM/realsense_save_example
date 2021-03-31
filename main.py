@@ -76,10 +76,13 @@ def main():
                     f"tps={load_balancer.tasks_per_second.get_fps()}")
                 idx += 1
     finally:
-        camera.pipeline.stop()
+        camera.stop()
         if args.save:
             load_balancer.join()
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        raise e
