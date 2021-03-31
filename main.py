@@ -1,27 +1,12 @@
-import time
-import uuid
-from copy import deepcopy
-from io import StringIO
-
-import pyrealsense2 as rs
-import numpy as np
-import cv2
-
+import argparse
 import pathlib
 from datetime import datetime
-import json
-import argparse
 from timeit import default_timer as timer
 
-import threading
-import queue
-
-from raytils.display import OpenCVDisplay
 from raytils.system import LoadBalancer
-from tqdm import tqdm
 
 from rs_store.camera import RealsenseD400Camera
-from rs_store.save import save_dict, save_img, save
+from rs_store.save import save
 
 
 def get_str_datetime():
@@ -97,13 +82,4 @@ def main():
 
 
 if __name__ == '__main__':
-    while True:
-        try:
-            main()
-        except KeyboardInterrupt:
-            print("Exiting")
-            break
-        except Exception as e:
-            print("Exception", e)
-            print("Restarting in 5 seconds")
-            time.sleep(5)
+    main()
