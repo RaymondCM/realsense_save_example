@@ -2,7 +2,7 @@
 Version=1.0
 Name=RealsenseCapture
 Comment=Open the terminal and run the capture software
-Exec=gnome-terminal -e "bash -c 'cd realsense_save_example;source venv/bin/activate;python main.py --save --interval 15 --threads 1 --visualise; sudo reboot;$SHELL'"
+Exec=gnome-terminal -e "bash -c 'cd realsense_save_example;source venv/bin/activate;sleep 5; python main.py --save --interval 15 --threads 1 --visualise; echo \"Rebooting in 5 seconds\";sleep 5;sudo reboot;$SHELL'"
 Icon=utilities-terminal
 Terminal=false
 Hidden=false
