@@ -1,16 +1,13 @@
 import pathlib
-import threading
-from collections import Callable
+import time
 
 import cv2
-from raytils.display import OpenCVDisplay
+import numpy as np
+import pyrealsense2 as rs
+from tqdm import tqdm
 
 from rs_store.config import Config
 from rs_store.save import log
-import pyrealsense2 as rs
-import numpy as np
-import time
-from tqdm import tqdm
 
 
 def rs2dict(obj):
@@ -70,11 +67,14 @@ class RealsenseD400Camera():
 
         self.visualise = visualise
         self.display = None
+        self.display = "Realsense Saver"
         if self.visualise:
-            self.display = OpenCVDisplay("Realsense Saver")
+            cv2.namedWindow(self.display, cv2.WINDOW_GUI_EXPANDED)
+            cv2.destroyAllWindows()
 
     def stop(self):
         if self.started:
+            cv2.destroyAllWindows()
             self.pipeline.stop()
             self.started = False
         else:
@@ -149,13 +149,18 @@ class RealsenseD400Camera():
                     self.rs_config.enable_stream(rs.stream.infrared, 1, width, height, rs.format.y8, fps)
                     self.rs_config.enable_stream(rs.stream.infrared, 2, width, height, rs.format.y8, fps)
                 self.start()
-                break
+                return
             except Exception as e:
                 print(f"Could not configure camera! {serial_number}:", e)
                 attempts += 1
-                self.device.hardware_reset()
-                for _ in tqdm(range(5), desc="Resetting device serial_number and waiting five seconds"):
+                if self.device is not None:
+                    self.device.hardware_reset()
+                    for _ in tqdm(range(5), desc=f"Resetting device f{serial_number} and waiting five seconds"):
+                        time.sleep(1)
+                else:
+                    print("Could not find a camera!")
                     time.sleep(1)
+        raise Exception("Could not configure a camera.")
 
     def warmup(self, n=100):
         for _ in range(n):
@@ -210,7 +215,8 @@ class RealsenseD400Camera():
                         to3d(np.hstack([cv2.resize(ir_left_image, (720, 480)), cv2.resize(ir_right_image, (720, 480))]))
                     ])
 
-                self.display.show(canvas)
+                cv2.imshow(self.display, canvas)
+                cv2.waitKey(1)
 
             self.frames = RealsenseData(color_image, depth_image, aligned_depth_image, aligned_depth_cm_image,
                                         ir_left_image, ir_right_image, image_info)

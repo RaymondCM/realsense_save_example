@@ -1,6 +1,12 @@
 import argparse
+import os
 import pathlib
 import sys
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+
 from datetime import datetime
 from timeit import default_timer as timer
 
@@ -29,11 +35,17 @@ def log(*args, **kwargs):
     print(*args, **kwargs)
 
 
+def fexit(code=0):
+    thread.interrupt_main()
+    thread.interrupt_main()
+    os._exit(code)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--visualise", action='store_true', default=False, help="Show the current frames")
     parser.add_argument("--save", action='store_true', default=False, help="Save the current frames")
-    parser.add_argument("--interval", default=1/30, help="Number of seconds to wait between captures")
+    parser.add_argument("--interval", default=1/40, help="Number of seconds to wait between captures")
     parser.add_argument("--config", default=None, help="Config json file saved from realsense-viewer")
     parser.add_argument("--threads", default=1, help="Number of threads to use for writing to disk")
     args = parser.parse_args()
@@ -51,11 +63,12 @@ def main():
         log("Saving images to {}".format(save_path.resolve()))
         load_balancer = LoadBalancer(maxsize=80, threads=int(args.threads) or 1, auto=False)
     args.interval = float(args.interval)
-
-    camera = RealsenseD400Camera(config_path=args.config, visualise=args.visualise)
-    last_capture = timer()
+    camera = None
 
     try:
+        camera = RealsenseD400Camera(config_path=args.config, visualise=args.visualise)
+        last_capture = timer()
+
         shutdown = False
         while not shutdown:
             time_since_last_capture = timer() - last_capture
@@ -76,15 +89,15 @@ def main():
                 log(f"Saving queue_size={load_balancer.qsize()}, iter={idx:07d} "
                     f"tps={load_balancer.tasks_per_second.get_fps()}")
                 idx += 1
+    except Exception as e:
+        print("Exception:", e)
     finally:
-        camera.stop()
         if args.save:
             load_balancer.join()
+        if camera is not None:
+            camera.stop()
+    os._exit(1)
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except Exception as e:
-        print("Exception:", e)
-        sys.exit(1)
+    main()
