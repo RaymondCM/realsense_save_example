@@ -49,7 +49,7 @@ def main():
     parser.add_argument("--save", action='store_true', default=False, help="Save the current frames")
     parser.add_argument("--interval", default=1/30, help="Number of seconds to wait between captures")
     parser.add_argument("--config", default=None, help="Config json file saved from realsense-viewer")
-    parser.add_argument("--threads", default=8, help="Number of threads to use for writing to disk")
+    parser.add_argument("--threads", default=1, help="Number of threads to use for writing to disk")
     args = parser.parse_args()
 
     # TODO: ADD FILTERS
@@ -63,7 +63,7 @@ def main():
             save_path.mkdir(parents=True)
         idx = 0
         log("Saving images to {}".format(save_path.resolve()))
-        load_balancer = LoadBalancer(maxsize=80, threads=1, auto=False)
+        load_balancer = LoadBalancer(maxsize=80, threads=args.threads, auto=False)
     args.interval = float(args.interval)
 
     camera = RealsenseD400Camera(config_path=args.config, visualise=args.visualise)
