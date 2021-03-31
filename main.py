@@ -1,5 +1,6 @@
 import argparse
 import pathlib
+import sys
 from datetime import datetime
 from timeit import default_timer as timer
 
@@ -85,4 +86,5 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        raise e
+        print("Exception:", e)
+        sys.exit(1)

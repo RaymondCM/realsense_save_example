@@ -55,9 +55,8 @@ class RealsenseD400Camera():
             config_path = pathlib.Path(__file__).parent.parent / "configs/default.yaml"
 
         self.config = Config(config_path)
-        self._configure_rs()
         self.profile = None
-        self.start()
+        self._configure_rs()
 
         self.colorizer = rs.colorizer()
         self.frames = RealsenseData()
@@ -82,6 +81,8 @@ class RealsenseD400Camera():
             print("Pipeline not started!")
 
     def start(self):
+        if self.started:
+            self.stop()
         self.profile = self.pipeline.start(self.rs_config)
         self.started = True
 
@@ -89,7 +90,7 @@ class RealsenseD400Camera():
         ds5_product_ids = ["0AD1", "0AD2", "0AD3", "0AD4", "0AD5", "0AF6", "0AFE", "0AFF", "0B00", "0B01", "0B03",
                            "0B07", "0B3A", "0B5C"]
 
-        def find_device_that_supports_advanced_mode():
+        def find_device_that_supports_advanced_mode(serial=None):
             ctx = rs.context()
             devices = ctx.query_devices()
             try:
@@ -97,46 +98,64 @@ class RealsenseD400Camera():
                     if t_device.supports(rs.camera_info.product_id) and str(
                             t_device.get_info(rs.camera_info.product_id)) in ds5_product_ids:
                         if t_device.supports(rs.camera_info.name):
+                            if serial is not None and t_device.supports(rs.camera_info.serial_number):
+                                if serial != t_device.get_info(rs.camera_info.serial_number):
+                                    continue
                             log("Found device that supports advanced mode: {} ({})".format(
                                 t_device.get_info(rs.camera_info.name),
                                 t_device.get_info(rs.camera_info.serial_number),
                             ))
                         return t_device
             except Exception as e:
-                log("Error finding camera:", e)
+                log(f"Error finding camera (serial={'any' if serial is None else serial}):", e)
             raise Exception("No D400 product line device that supports advanced mode was found")
 
-        self.device = find_device_that_supports_advanced_mode()
-        self.advanced_mode = rs.rs400_advanced_mode(self.device)
-        log("Advanced mode is", "enabled" if self.advanced_mode.is_enabled() else "disabled")
+        serial_number = None
 
-        # Loop until we successfully enable advanced mode
-        while not self.advanced_mode.is_enabled():
-            log("Trying to enable advanced mode")
-            self.advanced_mode.toggle_advanced_mode(True)
-            # At this point the device will disconnect and re-connect.
-            for _ in tqdm(range(5), desc="Sleeping while camera reconnects"):
-                time.sleep(1)
-            # The 'dev' object will become invalid and we need to initialize it again
-            self.device = find_device_that_supports_advanced_mode()
-            self.advanced_mode = rs.rs400_advanced_mode(self.device)
-            log("Advanced mode is", "enabled" if self.advanced_mode.is_enabled() else "disabled")
+        attempts = 0
+        while attempts < 3:
+            try:
+                self.device = find_device_that_supports_advanced_mode(serial_number)
+                serial_number = self.device.get_info(rs.camera_info.serial_number)
+                self.advanced_mode = rs.rs400_advanced_mode(self.device)
+                log("Advanced mode is", "enabled" if self.advanced_mode.is_enabled() else "disabled")
 
-        self.advanced_mode.load_json(self.config.rs_str)
-        width, height = int(self.config["stream-width"]), int(self.config["stream-height"])
-        fps = int(self.config["stream-fps"])
-        color_width, colour_height, colour_fps = self.config.rgb_width, self.config.rgb_height, self.config.rgb_fps
+                # Loop until we successfully enable advanced mode
+                while not self.advanced_mode.is_enabled():
+                    log("Trying to enable advanced mode")
+                    self.advanced_mode.toggle_advanced_mode(True)
+                    # At this point the device will disconnect and re-connect.
+                    for _ in tqdm(range(5), desc="Sleeping while camera reconnects"):
+                        time.sleep(1)
+                    # The 'dev' object will become invalid and we need to initialize it again
+                    self.device = find_device_that_supports_advanced_mode()
+                    self.advanced_mode = rs.rs400_advanced_mode(self.device)
+                    log("Advanced mode is", "enabled" if self.advanced_mode.is_enabled() else "disabled")
 
-        self.rs_config.enable_device(self.device.get_info(rs.camera_info.serial_number))
-        log("Enabling colour: {}x{}@{} - {}".format(color_width, colour_height, colour_fps, str(rs.format.bgr8)))
-        self.rs_config.enable_stream(rs.stream.color, color_width, colour_height, rs.format.bgr8, colour_fps)
-        log("Enabling depth: {}x{}@{} - {}".format(width, height, fps, str(rs.format.z16)))
-        self.rs_config.enable_stream(rs.stream.depth, width, height, rs.format.z16, fps)
+                self.advanced_mode.load_json(self.config.rs_str)
+                width, height = int(self.config["stream-width"]), int(self.config["stream-height"])
+                fps = int(self.config["stream-fps"])
+                color_width, colour_height, colour_fps = self.config.rgb_width, self.config.rgb_height, self.config.rgb_fps
 
-        if self.config.ir_enabled:
-            log("Enabling infrared: {}x{}@{} - {}".format(width, height, fps, str(rs.format.y8)))
-            self.rs_config.enable_stream(rs.stream.infrared, 1, width, height, rs.format.y8, fps)
-            self.rs_config.enable_stream(rs.stream.infrared, 2, width, height, rs.format.y8, fps)
+                self.rs_config.enable_device(self.device.get_info(rs.camera_info.serial_number))
+                log("Enabling colour: {}x{}@{} - {}".format(color_width, colour_height, colour_fps,
+                                                            str(rs.format.bgr8)))
+                self.rs_config.enable_stream(rs.stream.color, color_width, colour_height, rs.format.bgr8, colour_fps)
+                log("Enabling depth: {}x{}@{} - {}".format(width, height, fps, str(rs.format.z16)))
+                self.rs_config.enable_stream(rs.stream.depth, width, height, rs.format.z16, fps)
+
+                if self.config.ir_enabled:
+                    log("Enabling infrared: {}x{}@{} - {}".format(width, height, fps, str(rs.format.y8)))
+                    self.rs_config.enable_stream(rs.stream.infrared, 1, width, height, rs.format.y8, fps)
+                    self.rs_config.enable_stream(rs.stream.infrared, 2, width, height, rs.format.y8, fps)
+                self.start()
+                break
+            except Exception as e:
+                print(f"Could not configure camera! {serial_number}:", e)
+                attempts += 1
+                self.device.hardware_reset()
+                for _ in tqdm(range(5), desc="Resetting device serial_number and waiting five seconds"):
+                    time.sleep(1)
 
     def warmup(self, n=100):
         for _ in range(n):
