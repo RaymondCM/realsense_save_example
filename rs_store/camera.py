@@ -166,8 +166,9 @@ class RealsenseD400Camera():
         for _ in range(n):
             self.get_frames()
 
-    def get_frames(self):
+    def get_frames(self, return_key=False):
         while True:
+            key_code = None
             frames = self.pipeline.wait_for_frames()
             aligned_frames = self.align.process(frames)
 
@@ -216,8 +217,10 @@ class RealsenseD400Camera():
                     ])
 
                 cv2.imshow(self.display, canvas)
-                cv2.waitKey(1)
+                key_code = cv2.waitKey(1)
 
             self.frames = RealsenseData(color_image, depth_image, aligned_depth_image, aligned_depth_cm_image,
                                         ir_left_image, ir_right_image, image_info)
+            if return_key:
+                return self.frames, key_code
             return self.frames

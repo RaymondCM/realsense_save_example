@@ -14,7 +14,7 @@ def main():
     filtered_images = sorted(filtered_images, key=lambda x: x.name)
 
     interval = 15
-    minutes_per_second = 60
+    minutes_per_second = 5
     rate = int(((1 / minutes_per_second) / (60 / interval)) * 1000)
     cv2.namedWindow('Realsense Capture Browser', cv2.WINDOW_FREERATIO)
 
