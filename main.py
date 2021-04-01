@@ -96,7 +96,7 @@ def main():
             load_balancer.join()
         if camera is not None:
             camera.stop()
-    os._exit(1)
+    os._exit(1)  # TODO: Fix threading problem that hangs main thread from exiting
 
 
 if __name__ == '__main__':
