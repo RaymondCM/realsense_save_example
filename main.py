@@ -98,10 +98,14 @@ def main():
     except Exception as e:
         print("Exception:", e)
     finally:
-        if camera is not None:
-            camera.stop()
-        if args.save:
-            load_balancer.join()
+        try:
+            if camera is not None:
+                camera.stop()
+            if args.save:
+                load_balancer.join()
+        except Exception as e:
+            print("Could not cleanly exit")
+            os._exit(1)
 
 
 if __name__ == '__main__':
