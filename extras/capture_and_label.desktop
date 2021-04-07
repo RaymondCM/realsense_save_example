@@ -2,7 +2,7 @@
 Version=1.0
 Name=CaptureAndLabel
 Comment=Open the terminal and run the capture software
-Exec=gnome-terminal -e "bash -c 'cd realsense_save_example/extras;bash capture_and_label.sh;$SHELL'"
+Exec=gnome-terminal -e "bash -c 'bash $HOME/realsense_save_example/extras/capture_and_label.sh'"
 Icon=utilities-terminal
 Terminal=false
 Hidden=false

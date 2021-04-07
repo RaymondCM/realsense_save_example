@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Utility script to allow easy annotation of files as they are captured
-cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" ||
+set -e
+cd $HOME/realsense_save_example/extras
 cd ..
 
 trap 'kill $(jobs -p)' EXIT
