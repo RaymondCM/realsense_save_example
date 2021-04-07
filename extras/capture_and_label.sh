@@ -3,6 +3,8 @@
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" ||
 cd ..
 
+trap 'kill $(jobs -p)' EXIT
+
 source venv/bin/activate
 [ -f labelme ] || wget https://github.com/wkentaro/labelme/releases/download/v4.5.6/labelme-Linux -O labelme
 chmod +x labelme capture_and_label.desktop
