@@ -81,3 +81,7 @@ Capture every 5 seconds or when space is pressed, show a GUI and load custom cam
 ```bash
 python main.py --save --interval 5 --visualise --config configs/default.yaml
 ```
+
+## Extras
+
+Extra utilities are provided in [extras/](/extras).

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=CaptureAndLabel
+Comment=Open the terminal and run the capture software
+Exec=gnome-terminal -e "bash -c 'cd realsense_save_example/extras;bash capture_and_label.sh;$SHELL'"
+Icon=utilities-terminal
+Terminal=false
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Type=Application
+Categories=Application;
+Name[en_GB]=RealsenseCapture

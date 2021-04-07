@@ -1,13 +1,14 @@
 import argparse
 import os
 import pathlib
-import sys
+
+from rs_store.utils import get_str_datetime, get_new_save_path
+
 try:
     import thread
 except ImportError:
     import _thread as thread
 
-from datetime import datetime
 from timeit import default_timer as timer
 
 from raytils.system import LoadBalancer
@@ -16,14 +17,7 @@ from rs_store.camera import RealsenseD400Camera
 from rs_store.save import save
 
 
-def get_str_datetime():
-    folder_name = str(datetime.now())
-    for o in ['.', ':', " "]:
-        folder_name = folder_name.replace(o, "_")
-    return "D" + str(datetime.now()).replace(".", "_").replace(":", "_").replace(" ", "T")
-
-
-save_path = pathlib.Path(__file__).parent / "saved_data" / get_str_datetime()
+save_path = get_new_save_path()
 log_file = save_path / "log.txt"
 save_log = False
 
@@ -35,12 +29,6 @@ def log(*args, **kwargs):
     print(*args, **kwargs)
 
 
-def fexit(code=0):
-    thread.interrupt_main()
-    thread.interrupt_main()
-    os._exit(code)
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--visualise", action='store_true', default=False, help="Show the current frames")
@@ -48,10 +36,15 @@ def main():
     parser.add_argument("--interval", default='Inf', help="Number of seconds to wait between captures")
     parser.add_argument("--config", default=None, help="Config json file saved from realsense-viewer")
     parser.add_argument("--threads", default=1, help="Number of threads to use for writing to disk")
+    parser.add_argument("--out", default=None, help="Directory to save files in")
     args = parser.parse_args()
 
     # TODO: ADD FILTERS
-
+    if args.out is not None:
+        global save_path
+        global log_file
+        save_path = pathlib.Path(str(args.out))
+        log_file = save_path / "log.txt"
     if args.config is None:
         args.config = pathlib.Path(__file__).parent / "configs/default.yaml"
     if args.save:
