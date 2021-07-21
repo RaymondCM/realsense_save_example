@@ -40,7 +40,7 @@ echo -e "\tINTERVAL: ${INTERVAL}"
 echo -e "\tTHREADS: ${THREADS}"
 echo -e "\tWEBHOOK_URL: ${WEBHOOK_URL}"
 echo -e "\tHEALTHCHECK_URL: ${HEALTHCHECK_URL}"
-echo "-> python main.py --save --interval ${INTERVAL} --threads ${THREADS} --visualise --webhook ${WEBHOOK_URL} --health ${HEALTHCHECK_URL}"
+echo "-> python main.py --save --interval ${INTERVAL} --threads ${THREADS} --webhook ${WEBHOOK_URL} --health ${HEALTHCHECK_URL}"
 
 python main.py --save --interval "${INTERVAL}" --threads "${THREADS}" --webhook "${WEBHOOK_URL}" --health "${HEALTHCHECK_URL}"
 EOF
