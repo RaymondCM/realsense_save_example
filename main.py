@@ -29,7 +29,7 @@ def log(*args, **kwargs):
     print(*args, **kwargs)
 
 
-def health_check(url):
+def health_check(url, job_meta=None):
     try:
         attempt = 0
         while attempt <= 3:
@@ -46,7 +46,7 @@ def health_check(url):
     return False
 
 
-def msteams_notification(url, title, extra_info=None):
+def msteams_notification(url, title, extra_info=None, job_meta=None):
     try:
         import pymsteams
         import netifaces
@@ -105,8 +105,8 @@ def main():
         last_capture = timer()
 
         shutdown = False
-        if args.webhook:
-            msteams_notification(args.webhook, "Connected")
+        if args.webhook and args.save:
+            load_balancer.add_task(msteams_notification, (args.webhook, "Connected"))
 
         while not shutdown:
             time_since_last_capture = timer() - last_capture
@@ -127,17 +127,17 @@ def main():
                 log(f"Saving queue_size={load_balancer.qsize()}, iter={idx:07d} "
                     f"tps={load_balancer.tasks_per_second.get_fps()}")
                 if args.health:
-                    health_check(args.health)
+                    load_balancer.add_task(health_check, (args.health,))
                 if args.webhook:
-                    msteams_notification(args.webhook, "Data Collected", extra_info={
+                    load_balancer.add_task(msteams_notification, (args.webhook, "Data Collected", {
                         "serial": camera.serial_number,
                         "capture_number": idx,
                         "time": time_str
-                    })
+                    }))
                 idx += 1
     except Exception as e:
-        if args.webhook:
-            msteams_notification(args.webhook, "Error")
+        if args.webhook and args.save:
+            load_balancer.add_task(msteams_notification, (args.webhook, "Error"))
         print("Exception:", e)
     finally:
         try:
@@ -146,8 +146,6 @@ def main():
             if args.save:
                 load_balancer.join()
         except Exception as e:
-            if args.webhook:
-                msteams_notification(args.webhook, "Error could not exit")
             print("Could not cleanly exit")
             os._exit(1)
 
