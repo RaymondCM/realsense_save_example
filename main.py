@@ -46,17 +46,28 @@ def health_check(url, job_meta=None):
     return False
 
 
-def msteams_notification(url, title, extra_info=None, job_meta=None):
+def get_interfaces():
     try:
-        import pymsteams
         import netifaces
-        extra_info = extra_info or {}
+
+        extra_info = {}
         for interface in netifaces.interfaces():
             for link in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
                 extra_info[f"IP {interface}"] = link['addr']
+        return extra_info
+    except Exception as e:
+        print("Could not get network interfaces")
+        return {}
+
+
+def msteams_notification(url, title, extra_info=None, job_meta=None):
+    try:
+        import pymsteams
+        extra_info = extra_info or {}
+        extra_info.extend(get_interfaces())
         teams_message = pymsteams.connectorcard(url)
         teams_message.title(title)
-        teams_message.text(',   \n'.join([f"{k}: {v}" for k, v in extra_info.items()]))
+        teams_message.text(" " + ',   \n'.join([f"{k}: {v}" for k, v in extra_info.items()]))
         teams_message.send()
     except Exception as e:
         print(f"Failed to send notification: {e}")
