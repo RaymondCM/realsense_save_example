@@ -26,6 +26,8 @@ if __name__ == '__main__':
             'tqdm',
             'pyyaml',
             'pyrealsense2',
+            'pymsteams',
+            'netifaces',
         ],
         python_requires='>=3.7',
     )
