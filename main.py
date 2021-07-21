@@ -51,6 +51,13 @@ def get_interfaces():
         import netifaces
 
         extra_info = {}
+
+        try:
+            import socket
+            extra_info["HOST"] = socket.gethostname()
+        except Exception as e:
+            print("Could not get hostname")
+
         for interface in netifaces.interfaces():
             try:
                 for link in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
