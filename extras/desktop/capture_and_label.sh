@@ -7,8 +7,8 @@ cd ..
 trap 'kill $(jobs -p)' EXIT
 
 source venv/bin/activate
-[ -f ./extras/labelme ] || wget https://github.com/wkentaro/labelme/releases/download/v4.5.6/labelme-Linux -O ./extras/labelme
-chmod +x ./extras/labelme extras/capture_and_label.desktop
+[ -f ./extras/desktop/labelme ] || wget https://github.com/wkentaro/labelme/releases/download/v4.5.6/labelme-Linux -O ./extras/desktop/labelme
+chmod +x ./extras/desktop/labelme extras/desktop/capture_and_label.desktop
 
 save_path=$(python -c "from rs_store.utils import get_new_save_path;print(get_new_save_path())")
 echo "Saving in $save_path"
