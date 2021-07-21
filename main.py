@@ -46,7 +46,7 @@ def health_check(url):
     return False
 
 
-def msteams_notification(url, extra_info=None):
+def msteams_notification(url, title, extra_info=None):
     try:
         import pymsteams
         import netifaces
@@ -55,7 +55,7 @@ def msteams_notification(url, extra_info=None):
             for link in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
                 extra_info[f"IP {interface}"] = link['addr']
         teams_message = pymsteams.connectorcard(url)
-        teams_message.title("Data Collected")
+        teams_message.title(title)
         teams_message.text(',   \n'.join([f"{k}: {v}" for k, v in extra_info.items()]))
         teams_message.send()
     except Exception as e:
@@ -99,6 +99,11 @@ def main():
     if save_on_space_key:
         log("Press space in the display window to save to disk.")
 
+    if args.webhook:
+        msteams_notification(args.webhook, "Connected")
+    if args.health:
+        health_check(args.health)
+
     try:
         camera = RealsenseD400Camera(config_path=args.config, visualise=args.visualise)
         last_capture = timer()
@@ -125,18 +130,15 @@ def main():
                 if args.health:
                     health_check(args.health)
                 if args.webhook:
-                    fields = {
-                        "serial": camera.serial_number,
-                        "capture_number": idx,
-                        "time": time_str
-                    }
-                    msteams_notification(args.webhook, extra_info={
+                    msteams_notification(args.webhook, "Data Collected", extra_info={
                         "serial": camera.serial_number,
                         "capture_number": idx,
                         "time": time_str
                     })
                 idx += 1
     except Exception as e:
+        if args.webhook:
+            msteams_notification(args.webhook, "Error")
         print("Exception:", e)
     finally:
         try:
@@ -145,6 +147,8 @@ def main():
             if args.save:
                 load_balancer.join()
         except Exception as e:
+            if args.webhook:
+                msteams_notification(args.webhook, "Error could not exit")
             print("Could not cleanly exit")
             os._exit(1)
 
