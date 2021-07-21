@@ -52,8 +52,11 @@ def get_interfaces():
 
         extra_info = {}
         for interface in netifaces.interfaces():
-            for link in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
-                extra_info[f"IP {interface}"] = link['addr']
+            try:
+                for link in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
+                    extra_info[f"IP {interface}"] = link['addr']
+            except Exception as e:
+                print(f"Could not get interface {interface}")
         return extra_info
     except Exception as e:
         print("Could not get network interfaces")
