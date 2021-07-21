@@ -99,16 +99,15 @@ def main():
     if save_on_space_key:
         log("Press space in the display window to save to disk.")
 
-    if args.webhook:
-        msteams_notification(args.webhook, "Connected")
-    if args.health:
-        health_check(args.health)
 
     try:
         camera = RealsenseD400Camera(config_path=args.config, visualise=args.visualise)
         last_capture = timer()
 
         shutdown = False
+        if args.webhook:
+            msteams_notification(args.webhook, "Connected")
+
         while not shutdown:
             time_since_last_capture = timer() - last_capture
 
