@@ -44,6 +44,7 @@ class RealsenseData:
 class RealsenseD400Camera():
     def __init__(self, config_path=None, visualise=False):
         self.device = None
+        self.serial_number = ""
         self.started = False
         self.advanced_mode = None
         self.pipeline = rs.pipeline()
@@ -110,13 +111,13 @@ class RealsenseD400Camera():
                 log(f"Error finding camera (serial={'any' if serial is None else serial}):", e)
             raise Exception("No D400 product line device that supports advanced mode was found")
 
-        serial_number = None
+        self.serial_number = None
 
         attempts = 0
         while attempts < 3:
             try:
-                self.device = find_device_that_supports_advanced_mode(serial_number)
-                serial_number = self.device.get_info(rs.camera_info.serial_number)
+                self.device = find_device_that_supports_advanced_mode(self.serial_number)
+                self.serial_number = self.device.get_info(rs.camera_info.serial_number)
                 self.advanced_mode = rs.rs400_advanced_mode(self.device)
                 log("Advanced mode is", "enabled" if self.advanced_mode.is_enabled() else "disabled")
 
@@ -151,11 +152,11 @@ class RealsenseD400Camera():
                 self.start()
                 return
             except Exception as e:
-                print(f"Could not configure camera! {serial_number}:", e)
+                print(f"Could not configure camera! {self.serial_number}:", e)
                 attempts += 1
                 if self.device is not None:
                     self.device.hardware_reset()
-                    for _ in tqdm(range(5), desc=f"Resetting device f{serial_number} and waiting five seconds"):
+                    for _ in tqdm(range(5), desc=f"Resetting device f{self.serial_number} and waiting five seconds"):
                         time.sleep(1)
                 else:
                     print("Could not find a camera!")

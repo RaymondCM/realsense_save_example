@@ -29,6 +29,39 @@ def log(*args, **kwargs):
     print(*args, **kwargs)
 
 
+def health_check(url):
+    try:
+        attempt = 0
+        while attempt <= 3:
+            import socket
+            import urllib.request
+            try:
+                urllib.request.urlopen(url, timeout=10)
+                return True
+            except socket.error as e:
+                print(f"Ping attempt {attempt} failed: {e}")
+            attempt += 1
+    except Exception as e:
+        print(f"Failed to send health check: {e}")
+    return False
+
+
+def msteams_notification(url, extra_info=None):
+    try:
+        import pymsteams
+        import netifaces
+        extra_info = extra_info or {}
+        for interface in netifaces.interfaces():
+            for link in netifaces.ifaddresses(interface)[netifaces.AF_INET]:
+                extra_info[f"IP {interface}"] = link['addr']
+        teams_message = pymsteams.connectorcard(url)
+        teams_message.title("Data Collected")
+        teams_message.text(',   \n'.join([f"{k}: {v}" for k, v in extra_info.items()]))
+        teams_message.send()
+    except Exception as e:
+        print(f"Failed to send notification: {e}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--visualise", action='store_true', default=False, help="Show the current frames")
@@ -37,6 +70,8 @@ def main():
     parser.add_argument("--config", default=None, help="Config json file saved from realsense-viewer")
     parser.add_argument("--threads", default=1, help="Number of threads to use for writing to disk")
     parser.add_argument("--out", default=None, help="Directory to save files in")
+    parser.add_argument("--webhook", default=None, help="URL of MS Teams WebHook")
+    parser.add_argument("--health", default=None, help="URL of HealthCheck.io")
     args = parser.parse_args()
 
     # TODO: ADD FILTERS
@@ -87,6 +122,19 @@ def main():
 
                 log(f"Saving queue_size={load_balancer.qsize()}, iter={idx:07d} "
                     f"tps={load_balancer.tasks_per_second.get_fps()}")
+                if args.health:
+                    health_check(args.health)
+                if args.webhook:
+                    fields = {
+                        "serial": camera.serial_number,
+                        "capture_number": idx,
+                        "time": time_str
+                    }
+                    msteams_notification(args.webhook, extra_info={
+                        "serial": camera.serial_number,
+                        "capture_number": idx,
+                        "time": time_str
+                    })
                 idx += 1
     except Exception as e:
         print("Exception:", e)
