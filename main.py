@@ -64,7 +64,7 @@ def msteams_notification(url, title, extra_info=None, job_meta=None):
     try:
         import pymsteams
         extra_info = extra_info or {}
-        extra_info.extend(get_interfaces())
+        extra_info.update(get_interfaces())
         teams_message = pymsteams.connectorcard(url)
         teams_message.title(title)
         teams_message.text(" " + ',   \n'.join([f"{k}: {v}" for k, v in extra_info.items()]))
