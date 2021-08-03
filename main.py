@@ -1,6 +1,7 @@
 import argparse
 import os
 import pathlib
+import shutil
 
 from rs_store.utils import get_str_datetime, get_new_save_path
 
@@ -83,6 +84,14 @@ def msteams_notification(url, title, extra_info=None, job_meta=None):
         print(f"Failed to send notification: {e}")
 
 
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--visualise", action='store_true', default=False, help="Show the current frames")
@@ -120,7 +129,6 @@ def main():
     if save_on_space_key:
         log("Press space in the display window to save to disk.")
 
-
     try:
         camera = RealsenseD400Camera(config_path=args.config, visualise=args.visualise)
         last_capture = timer()
@@ -150,11 +158,18 @@ def main():
                 if args.health:
                     load_balancer.add_task(health_check, (args.health,))
                 if args.webhook:
-                    load_balancer.add_task(msteams_notification, (args.webhook, "Data Collected", {
-                        "serial": camera.serial_number,
-                        "capture_number": idx,
-                        "time": time_str
-                    }))
+                    extra_info = {"serial": camera.serial_number, "capture_number": idx, "time": time_str}
+                    try:
+                        total, used, free = shutil.disk_usage("/")
+                        extra_info.update({
+                            "total_space": sizeof_fmt(total),
+                            "used_space": sizeof_fmt(used),
+                            "free_space": sizeof_fmt(free),
+                        })
+                    except Exception as e:
+                        print("Could not get '/' disk space:", e)
+
+                    load_balancer.add_task(msteams_notification, (args.webhook, "Data Collected", extra_info))
                 idx += 1
     except Exception as e:
         if args.webhook and args.save:
