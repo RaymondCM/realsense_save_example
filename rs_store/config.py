@@ -25,6 +25,9 @@ class Config:
             return self._advanced_config[item]
         raise KeyError(f"Item '{item}' does not exist")
 
+    def __str__(self):
+        return str(self._data) + str(self._advanced_config)
+
     def has_key(self, key):
         try:
             self.__getitem__(key)

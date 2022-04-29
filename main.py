@@ -118,7 +118,6 @@ def main():
         if not save_path.exists():
             save_path.mkdir(parents=True)
         idx = 0
-        log("Saving images to {}".format(save_path.resolve()))
         n_threads = int(args.threads) or 1
         assert n_threads > 0
         load_balancer = LoadBalancer(maxsize=80, threads=n_threads, auto=n_threads > 1)
@@ -136,7 +135,10 @@ def main():
         shutdown = False
         if args.webhook and args.save:
             load_balancer.add_task(msteams_notification, (args.webhook, "Connected"))
-        save_path = save_path / f"{camera.serial_number}"
+
+        if args.save:
+            save_path = save_path / f"{camera.serial_number}"
+            log("Saving images to {}".format(save_path.resolve()))
 
         while not shutdown:
             time_since_last_capture = timer() - last_capture

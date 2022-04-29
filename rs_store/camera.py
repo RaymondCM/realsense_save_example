@@ -53,6 +53,7 @@ class RealsenseD400Camera():
             config_path = pathlib.Path(__file__).parent.parent / "configs/default.yaml"
 
         self.config = Config(config_path)
+        print("Loaded config: ", print(self.config))
         if self.config.has_key("serial"):
             self.serial_number = self.config.serial
         self.profile = None
@@ -118,6 +119,7 @@ class RealsenseD400Camera():
             try:
                 self.device = find_device_that_supports_advanced_mode(self.serial_number)
                 if self.serial_number is None:
+                    print("Serial Number not Set! Setting automatically from the first device")
                     self.serial_number = self.device.get_info(rs.camera_info.serial_number)
                 self.advanced_mode = rs.rs400_advanced_mode(self.device)
                 log("Advanced mode is", "enabled" if self.advanced_mode.is_enabled() else "disabled")
