@@ -44,9 +44,10 @@ echo -e "\tINTERVAL: ${INTERVAL}"
 echo -e "\tTHREADS: ${THREADS}"
 echo -e "\tWEBHOOK_URL: ${WEBHOOK_URL}"
 echo -e "\tHEALTHCHECK_URL: ${HEALTHCHECK_URL}"
-echo "-> python main.py --save --interval ${INTERVAL} --threads ${THREADS} --webhook ${WEBHOOK_URL} --health ${HEALTHCHECK_URL} --config ${CONFIG_PATH}"
+echo -e "\tCONFIG_PATH: ${CONFIG_PATH}"
+echo "-> python main.py --save --interval ${INTERVAL} --threads ${THREADS} --webhook ${WEBHOOK_URL} --health ${HEALTHCHECK_URL} --config ${CONFIG_PATH}
 
-python main.py --save --interval "${INTERVAL}" --threads "${THREADS}" --webhook "${WEBHOOK_URL}" --health "${HEALTHCHECK_URL} --config ${CONFIG_PATH}"
+python main.py --save --interval "${INTERVAL}" --threads "${THREADS}" --webhook "${WEBHOOK_URL}" --health "${HEALTHCHECK_URL}" --config "${CONFIG_PATH}"
 EOF
 sudo cp tmp_tl.sh /usr/local/bin/${config_name}.sh
 sudo chmod +x /usr/local/bin/${config_name}.sh
