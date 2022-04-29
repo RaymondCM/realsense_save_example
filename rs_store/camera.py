@@ -105,8 +105,9 @@ class RealsenseD400Camera():
                             t_device.get_info(rs.camera_info.product_id)) in ds5_product_ids:
                         if t_device.supports(rs.camera_info.name):
                             if serial is not None and t_device.supports(rs.camera_info.serial_number):
-                                found_devices.append(t_device.get_info(rs.camera_info.serial_number))
-                                if serial != t_device.get_info(rs.camera_info.serial_number):
+                                found_serial = t_device.get_info(rs.camera_info.serial_number)
+                                found_devices.append(found_serial)
+                                if serial != found_serial and str(serial) != found_serial:
                                     continue
                             log("Found device that supports advanced mode: {} ({})".format(
                                 t_device.get_info(rs.camera_info.name),
