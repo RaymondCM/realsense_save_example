@@ -2,7 +2,7 @@
 set -e
 cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)" || exit
 
-config_name=${1:-"realsense-capture"}
+config_name=${1:-"timelapse-capture"}
 
 # Write config file
 sudo rm /etc/supervisor/conf.d/${config_name}.conf || true
