@@ -44,7 +44,7 @@ class RealsenseData:
 class RealsenseD400Camera():
     def __init__(self, config_path=None, visualise=False):
         self.device = None
-        self.serial_number = ""
+        self.serial_number = None
         self.started = False
         self.advanced_mode = None
         self.pipeline = rs.pipeline()
@@ -53,6 +53,8 @@ class RealsenseD400Camera():
             config_path = pathlib.Path(__file__).parent.parent / "configs/default.yaml"
 
         self.config = Config(config_path)
+        if self.config.has_key("serial"):
+            self.serial_number = self.config.serial
         self.profile = None
         self._configure_rs()
 
@@ -109,15 +111,14 @@ class RealsenseD400Camera():
                         return t_device
             except Exception as e:
                 log(f"Error finding camera (serial={'any' if serial is None else serial}):", e)
-            raise Exception("No D400 product line device that supports advanced mode was found")
-
-        self.serial_number = None
+            raise Exception(f"No D400 product line device that supports advanced mode was found (serial={'any' if serial is None else serial}).")
 
         attempts = 0
         while attempts < 3:
             try:
                 self.device = find_device_that_supports_advanced_mode(self.serial_number)
-                self.serial_number = self.device.get_info(rs.camera_info.serial_number)
+                if self.serial_number is None:
+                    self.serial_number = self.device.get_info(rs.camera_info.serial_number)
                 self.advanced_mode = rs.rs400_advanced_mode(self.device)
                 log("Advanced mode is", "enabled" if self.advanced_mode.is_enabled() else "disabled")
 
