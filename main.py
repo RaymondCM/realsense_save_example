@@ -136,6 +136,7 @@ def main():
         shutdown = False
         if args.webhook and args.save:
             load_balancer.add_task(msteams_notification, (args.webhook, "Connected"))
+        save_path = save_path / f"{camera.serial_number}"
 
         while not shutdown:
             time_since_last_capture = timer() - last_capture
