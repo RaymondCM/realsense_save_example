@@ -50,10 +50,11 @@ class RealsenseD400Camera():
         self.pipeline = rs.pipeline()
         self.rs_config = rs.config()
         if config_path is None:
+            print("Setting Default Config Path")
             config_path = pathlib.Path(__file__).parent.parent / "configs/default.yaml"
 
         self.config = Config(config_path)
-        print("Loaded config: ", print(self.config))
+        print("Loaded config: ", self.config)
         if self.config.has_key("serial"):
             self.serial_number = self.config.serial
         self.profile = None
