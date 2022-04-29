@@ -98,12 +98,14 @@ class RealsenseD400Camera():
         def find_device_that_supports_advanced_mode(serial=None):
             ctx = rs.context()
             devices = ctx.query_devices()
+            found_devices = []
             try:
                 for t_device in devices:
                     if t_device.supports(rs.camera_info.product_id) and str(
                             t_device.get_info(rs.camera_info.product_id)) in ds5_product_ids:
                         if t_device.supports(rs.camera_info.name):
                             if serial is not None and t_device.supports(rs.camera_info.serial_number):
+                                found_devices.append(t_device.get_info(rs.camera_info.serial_number))
                                 if serial != t_device.get_info(rs.camera_info.serial_number):
                                     continue
                             log("Found device that supports advanced mode: {} ({})".format(
@@ -113,7 +115,11 @@ class RealsenseD400Camera():
                         return t_device
             except Exception as e:
                 log(f"Error finding camera (serial={'any' if serial is None else serial}):", e)
-            raise Exception(f"No D400 product line device that supports advanced mode was found (serial={'any' if serial is None else serial}).")
+            error_message = "No D400 product line device that supports advanced mode was found:."
+            error_message += f"\n\t- Serial={'any' if serial is None else serial}"
+            error_message += f"\n\t- Serial not in {found_devices}"
+            error_message += f"\n\n\n"
+            raise Exception(error_message)
 
         attempts = 0
         while attempts < 3:
