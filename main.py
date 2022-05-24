@@ -2,6 +2,7 @@ import argparse
 import os
 import pathlib
 import shutil
+import time
 
 from rs_store.utils import get_str_datetime, get_new_save_path
 
@@ -144,6 +145,7 @@ def main():
 
         while not shutdown:
             time_since_last_capture = timer() - last_capture
+            start_capture = timer()
 
             frames, key_code = camera.get_frames(return_key=True)
 
@@ -176,6 +178,13 @@ def main():
 
                     load_balancer.add_task(msteams_notification, (args.webhook, "Data Collected", extra_info))
                 idx += 1
+
+            if args.interval > 0 and args.interval != float("inf"):
+                time_to_sleep = args.interval - (timer() - start_capture)
+                if time_to_sleep > 0:
+                    print("Sleeping for {} seconds".format(time_to_sleep))
+                    time.sleep(time_to_sleep)
+
     except Exception as e:
         if args.webhook and args.save:
             load_balancer.add_task(msteams_notification, (args.webhook, "Error"))
